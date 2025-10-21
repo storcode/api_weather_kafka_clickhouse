@@ -1,0 +1,8 @@
+.env.clickhouse
+/.env
+
+/app/key_appid.py
+/app/key_CH.py
+/app/__pycache__
+/downloads_weather
+/clickhouse_data
