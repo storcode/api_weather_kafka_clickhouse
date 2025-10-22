@@ -1,4 +1,3 @@
-
 # Example of job definition:
 # .---------------- minute (0 - 59)
 # |  .------------- hour (0 - 23)
@@ -8,8 +7,11 @@
 # |  |  |  |  |
 # *  *  *  *  * user-name command to be executed
 
-*/5 * * * *    /usr/local/bin/python3.12 /home/app/Producer_clickhouse.py  >> /var/log/cron_docker_producer.log 2>&1
-*/5 * * * *    /usr/local/bin/python3.12 /home/app/Сonsumer_clickhouse.py >> /var/log/cron_docker_consumer.log 2>&1
+# PRODUCER: запускаем каждые 5 минут
+*/5 * * * *    /usr/local/bin/python3.12 /home/app/Producer_clickhouse.py >> /var/log/cron_docker_producer.log 2>&1
+
+# CONSUMER: запускаем ОДИН РАЗ при старте системы (демон)
+@reboot        /usr/local/bin/python3.12 /home/app/Consumer_clickhouse.py >> /var/log/cron_docker_consumer.log 2>&1
 
 # 2>&1: Это перенаправляет стандартные ошибки (stderr) в стандартный вывод (stdout), 
-#       так что и ошибки, и обычные сообщения будут записываться в лог-файлы.
+#       так что и ошибки, и обычные сообщения будут записываются в лог-файлы.

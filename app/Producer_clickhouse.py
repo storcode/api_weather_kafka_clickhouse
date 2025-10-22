@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO)
 
 def create_producer():
     producer_conf = {
-        'bootstrap.servers': 'kafka-1:9091,kafka-2:9092,kafka-3:9093',
+        'bootstrap.servers': 'kafka-1:9092,kafka-2:9092,kafka-3:9092',
         'acks': 'all',
         'delivery.report.only.error': False,
         'retries': 3,

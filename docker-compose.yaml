@@ -14,117 +14,133 @@ services:
       - weather_kafka_clickhouse
 
   kafka-1:
-    image: 'bitnami/kafka:3.8.0'
-    container_name: kafka-1-new
+    image: bitnamilegacy/kafka:3.9.0-debian-12-r9
+    container_name: kafka-1
     environment:
-      - KAFKA_ENABLE_KRAFT=yes
-      # указываем, что каждый брокер будет исполнять роль broker'a и controller'a
-      - KAFKA_CFG_PROCESS_ROLES=broker,controller
-      # указывает имя прослушивателя (listener), используемого для связи между брокерами в кластере
-      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
-      # указываем, что описанный ранее listener с названием PLAINTEXT будет использоватся для брокеров
-      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
-      # указываем название самой сущности "listener" и порты, на которых брокер будет принимать запросы
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9091,CONTROLLER://0.0.0.0:9094
-      # указываем протоколы, по которым будут работать описанные выше сущности "listener"
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      # уникальный идентификатор брокера в кластере Kafka
-      - KAFKA_CFG_BROKER_ID=1
-      # перечисляем список нод, которые исполняют роль controller'a и будут собраны вместе для кворума
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9094,2@kafka-2:9095,3@kafka-3:9096
-      # указываем адрес и порт, по которым клиенты смогут подключаться к кластеру. контроллер здесь не указывается
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-1:9091
-      # использование небезопасного соединения
-      - ALLOW_PLAINTEXT_LISTENER=yes
-      # указываем ID кластера. должен быть идентичен внутри кластера у всех нод
-      - KAFKA_KRAFT_CLUSTER_ID=r4zt_wrqTRuT7W4NJsB_GA
-      # у каждой из нод должен быть свой уникальный ID внутри кластера
+      # KRaft настройки
       - KAFKA_CFG_NODE_ID=1
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9093,2@kafka-2:9093,3@kafka-3:9093
+      - KAFKA_KRAFT_CLUSTER_ID=r4zt_wrqTRuT7W4NJsB_GA
+      
+      # Слушатели
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-1:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      
+      # Настройки кластера (важно для надежности)
+      - KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR=2
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=2
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR=2
+      
+      # Дополнительные настройки
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_CFG_NUM_PARTITIONS=3
     ports:
-      - 9091:9091
-    depends_on:
-      - clickhouse
+      - 9091:9092
+    volumes:
+      - kafka_1_data:/bitnami/kafka
     restart: always
     networks:
       - weather_kafka_clickhouse
 
   kafka-2:
-    image: 'bitnami/kafka:3.8.0'
-    container_name: kafka-2-new
+    image: bitnamilegacy/kafka:3.9.0-debian-12-r9
+    container_name: kafka-2
     environment:
-      - KAFKA_ENABLE_KRAFT=yes
-      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_NODE_ID=2
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9093,2@kafka-2:9093,3@kafka-3:9093
+      - KAFKA_KRAFT_CLUSTER_ID=r4zt_wrqTRuT7W4NJsB_GA
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-2:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9095
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      - KAFKA_CFG_BROKER_ID=2
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9094,2@kafka-2:9095,3@kafka-3:9096
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-2:9092
+      - KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR=2
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=2
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR=2
       - ALLOW_PLAINTEXT_LISTENER=yes
-      - KAFKA_KRAFT_CLUSTER_ID=r4zt_wrqTRuT7W4NJsB_GA
-      - KAFKA_CFG_NODE_ID=2
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
     ports:
       - 9092:9092
-    depends_on:
-      - clickhouse
+    volumes:
+      - kafka_2_data:/bitnami/kafka
     restart: always
     networks:
       - weather_kafka_clickhouse
 
   kafka-3:
-    image: 'bitnami/kafka:3.8.0'
-    container_name: kafka-3-new
+    image: bitnamilegacy/kafka:3.9.0-debian-12-r9
+    container_name: kafka-3
     environment:
-      - KAFKA_ENABLE_KRAFT=yes
-      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
-      - KAFKA_CFG_LISTENERS=PLAINTEXT://0.0.0.0:9093,CONTROLLER://0.0.0.0:9096
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
-      - KAFKA_CFG_BROKER_ID=3
-      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9094,2@kafka-2:9095,3@kafka-3:9096
-      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-3:9093
-      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka-1:9093,2@kafka-2:9093,3@kafka-3:9093
       - KAFKA_KRAFT_CLUSTER_ID=r4zt_wrqTRuT7W4NJsB_GA
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka-3:9092
       - KAFKA_CFG_NODE_ID=3
+      - KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR=2
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=2
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR=2
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE=true
     ports:
-      - 9093:9093
-    depends_on:
-      - clickhouse
+      - 9093:9092
+    volumes:
+      - kafka_3_data:/bitnami/kafka
     restart: always
     networks:
       - weather_kafka_clickhouse
 
   kafka-ui:
-    container_name: kafka-ui-new
-    image: 'provectuslabs/kafka-ui:latest'
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
     environment:
-      # перечисляем брокеры, из которых состоит наш кластер. также указываем порт для коннекта
-      - KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS=kafka-1:9091,kafka-2:9092,kafka-3:9093
-      # название кластера в самом веб-интерфейсе. переменная влияет только на отображаемое название
+      - KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
       - KAFKA_CLUSTERS_0_NAME=kafka-ui-cluster
     ports:
       - 8190:8180
     restart: always
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
     networks:
       - weather_kafka_clickhouse
 
   python_cron:
-    container_name: python_app-new
+    container_name: python_app
     build:
       context: ./cron_src
     volumes:
       - ./:/home
-      - ./city.list.json:/home/city.list.json:ro
+      - ./city_list.json:/home/city_list.json:ro
     depends_on:
       - clickhouse
       - kafka-1
       - kafka-2
       - kafka-3
-    restart: always
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep -E '(supervisord|Consumer_clickhouse.py)' | grep -v grep"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     networks:
       - weather_kafka_clickhouse
+
+volumes:
+  kafka_1_data:
+  kafka_2_data:
+  kafka_3_data:
 
 networks:
   weather_kafka_clickhouse:

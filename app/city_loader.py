@@ -4,7 +4,7 @@ from typing import Dict, List
 
 logger = logging.getLogger(__name__)
 
-def load_russian_cities(json_file_path: str = '/home/city.list.json') -> List[Dict]:
+def load_russian_cities(json_file_path: str = '/home/city_list.json') -> List[Dict]:
     """Загружает российские города из JSON файла"""
     try:
         with open(json_file_path, 'r', encoding='utf-8') as f:
