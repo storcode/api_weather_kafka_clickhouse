@@ -115,7 +115,7 @@ services:
     networks:
       - weather_kafka_clickhouse
 
-  python_cron:
+  python_app:
     container_name: python_app
     build:
       context: ./cron_src
@@ -129,7 +129,7 @@ services:
       - kafka-3
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "ps aux | grep -E '(supervisord|Consumer_clickhouse.py)' | grep -v grep"]
+      test: ["CMD-SHELL", "supervisorctl status | grep -q RUNNING"]
       interval: 30s
       timeout: 10s
       retries: 3

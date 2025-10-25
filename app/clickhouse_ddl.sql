@@ -32,16 +32,3 @@ PARTITION BY toYYYYMM(event_date)
 ORDER BY (event_date, city_name, event_time)
 COMMENT 'Таблица фактов погодных данных. Содержит сырые данные с метеостанций.';
 
--- Буферизованная таблица для частых вставок
-CREATE TABLE IF NOT EXISTS dwh.weather_fact_buffer AS dwh.weather_fact
-ENGINE = Buffer(
-    'dwh', 'weather_fact', 
-    1,      -- num_layers
-    30,     -- min_time (секунды) - ждем 30 секунд
-    60,     -- max_time (секунды) - максимум 60 секунд
-    100,    -- min_rows - минимум 100 строк
-    10000,  -- max_rows - максимум 10000 строк
-    0,      -- min_bytes
-    0       -- max_bytes
-);
-

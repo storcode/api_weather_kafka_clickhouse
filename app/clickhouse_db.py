@@ -85,7 +85,7 @@ def process_weather_batch_clickhouse(client, batch_data: List[Dict]):
         
         # Пакетная вставка в БУФЕРИЗОВАННУЮ таблицу
         query = """
-        INSERT INTO weather_fact_buffer (
+        INSERT INTO dwh.weather_fact (
             event_date, event_time, city_name, timezone, country, longitude, latitude,
             weather_main, weather_description, temperature, feels_like, temp_min, temp_max,
             pressure, humidity, visibility, wind_speed, wind_degree, wind_gust, cloudiness,
